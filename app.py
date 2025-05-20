@@ -20,7 +20,16 @@ model_path = 'models/rainfall_model_random_forest.joblib'
 if os.path.exists(model_path):
     model = joblib.load(model_path)
 else:
-    raise FileNotFoundError(f"Model file not found at {model_path}")
+    if os.environ.get('FLASK_ENV') == 'testing':
+        # Dummy model for testing
+        class DummyModel:
+            def predict(self, X):
+                return [0 for _ in range(len(X))]
+            def predict_proba(self, X):
+                return [[0.5, 0.5] for _ in range(len(X))]
+        model = DummyModel()
+    else:
+        raise FileNotFoundError(f"Model file not found at {model_path}")
 
 def preprocess_input(data):
     """Preprocess input data to match model requirements"""
