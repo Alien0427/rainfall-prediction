@@ -59,4 +59,4 @@ jobs:
       env:
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       run: |
-        curl -X POST "https://api.render.com/deploy/srv-xxxxx?key=$RENDER_API_KEY" 
+        curl -X POST "https://api.render.com/deploy/srv-rainfall-prediction?key=$RENDER_API_KEY" 
