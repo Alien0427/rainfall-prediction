@@ -24,8 +24,7 @@ def test_predict_endpoint(client):
         'temperature': 25.0,
         'humidity': 60.0,
         'wind_speed': 10.0,
-        'pressure': 1013.0,
-        'wind_direction': 'N'
+        'pressure': 1013.0
     }
     response = client.post('/predict',
                           data=json.dumps(test_data),
