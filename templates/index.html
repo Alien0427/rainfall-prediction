@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rainfall Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+        }
+        .card {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        @media (max-width: 640px) {
+            .mobile-full {
+                width: 100%;
+                margin: 0;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Rainfall Prediction</h1>
+            
+            <!-- Location Selection -->
+            <div class="card rounded-lg shadow-xl p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4">Select Location</h2>
+                <div class="flex space-x-4">
+                    <select id="locationSelect" class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Unknown">Manual Input</option>
+                    </select>
+                    <button id="addLocationBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                        Add Location
+                    </button>
+                </div>
+            </div>
+
+            <!-- Prediction Form -->
+            <div class="card rounded-lg shadow-xl p-6 mb-8">
+                <form id="predictionForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="temperature">
+                                Temperature (°C)
+                            </label>
+                            <input type="number" step="0.1" id="temperature" name="temperature" required
+                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="humidity">
+                                Humidity (%)
+                            </label>
+                            <input type="number" step="0.1" id="humidity" name="humidity" required
+                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="wind_speed">
+                                Wind Speed (km/h)
+                            </label>
+                            <input type="number" step="0.1" id="wind_speed" name="wind_speed" required
+                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="pressure">
+                                Pressure (hPa)
+                            </label>
+                            <input type="number" step="0.1" id="pressure" name="pressure" required
+                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200">
+                        Predict Rainfall
+                    </button>
+                </form>
+            </div>
+
+            <!-- Prediction Result -->
+            <div id="result" class="card rounded-lg shadow-xl p-6 mb-8 hidden">
+                <h2 class="text-2xl font-bold text-center mb-4">Prediction Result</h2>
+                <div class="text-center">
+                    <p class="text-lg mb-2">Will it rain tomorrow?</p>
+                    <p id="prediction" class="text-3xl font-bold mb-4"></p>
+                    <p class="text-lg mb-2">Probability:</p>
+                    <p id="probability" class="text-2xl font-bold mb-4"></p>
+                    <p class="text-sm text-gray-600" id="timestamp"></p>
+                </div>
+            </div>
+
+            <!-- Historical Predictions -->
+            <div class="card rounded-lg shadow-xl p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4">Historical Predictions</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-4 py-2">Time</th>
+                                <th class="px-4 py-2">Location</th>
+                                <th class="px-4 py-2">Prediction</th>
+                                <th class="px-4 py-2">Probability</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Weather Visualization -->
+            <div class="card rounded-lg shadow-xl p-6">
+                <h2 class="text-2xl font-bold mb-4">Weather Trends</h2>
+                <canvas id="weatherChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Location Modal -->
+    <div id="locationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg max-w-md mx-auto mt-20">
+            <h3 class="text-xl font-bold mb-4">Add New Location</h3>
+            <form id="locationForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="locationName">
+                        Location Name
+                    </label>
+                    <input type="text" id="locationName" required
+                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="latitude">
+                        Latitude
+                    </label>
+                    <input type="number" step="0.000001" id="latitude" required
+                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="longitude">
+                        Longitude
+                    </label>
+                    <input type="number" step="0.000001" id="longitude" required
+                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelLocationBtn"
+                        class="px-4 py-2 border rounded-lg hover:bg-gray-100">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Add Location</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Chart.js
+        const ctx = document.getElementById('weatherChart').getContext('2d');
+        const weatherChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperature',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }, {
+                    label: 'Humidity',
+                    data: [],
+                    borderColor: 'rgb(54, 162, 235)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Load locations
+        async function loadLocations() {
+            const response = await fetch('/locations');
+            const locations = await response.json();
+            const select = document.getElementById('locationSelect');
+            
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location.name;
+                option.textContent = location.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Load historical predictions
+        async function loadHistory() {
+            const response = await fetch('/history');
+            const predictions = await response.json();
+            const tbody = document.getElementById('historyTable');
+            tbody.innerHTML = '';
+            
+            predictions.forEach(pred => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-4 py-2">${pred.timestamp}</td>
+                    <td class="px-4 py-2">${pred.location}</td>
+                    <td class="px-4 py-2">${pred.prediction ? 'Yes' : 'No'}</td>
+                    <td class="px-4 py-2">${(pred.probability * 100).toFixed(1)}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update chart
+            weatherChart.data.labels = predictions.map(p => p.timestamp);
+            weatherChart.data.datasets[0].data = predictions.map(p => p.temperature);
+            weatherChart.data.datasets[1].data = predictions.map(p => p.humidity);
+            weatherChart.update();
+        }
+
+        // Location modal handling
+        document.getElementById('addLocationBtn').addEventListener('click', () => {
+            document.getElementById('locationModal').classList.remove('hidden');
+        });
+
+        document.getElementById('cancelLocationBtn').addEventListener('click', () => {
+            document.getElementById('locationModal').classList.add('hidden');
+        });
+
+        document.getElementById('locationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('locationName').value,
+                latitude: document.getElementById('latitude').value,
+                longitude: document.getElementById('longitude').value
+            };
+
+            try {
+                const response = await fetch('/add_location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    document.getElementById('locationModal').classList.add('hidden');
+                    await loadLocations();
+                } else {
+                    alert('Error adding location');
+                }
+            } catch (error) {
+                alert('Error adding location: ' + error.message);
+            }
+        });
+
+        // Prediction form handling
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                temperature: document.getElementById('temperature').value,
+                humidity: document.getElementById('humidity').value,
+                wind_speed: document.getElementById('wind_speed').value,
+                pressure: document.getElementById('pressure').value,
+                location: document.getElementById('locationSelect').value
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const resultDiv = document.getElementById('result');
+                    const predictionElement = document.getElementById('prediction');
+                    const probabilityElement = document.getElementById('probability');
+                    const timestampElement = document.getElementById('timestamp');
+
+                    predictionElement.textContent = data.prediction ? 'Yes' : 'No';
+                    predictionElement.className = `text-3xl font-bold mb-4 ${data.prediction ? 'text-green-600' : 'text-red-600'}`;
+                    
+                    probabilityElement.textContent = `${(data.probability * 100).toFixed(1)}%`;
+                    timestampElement.textContent = `Prediction made at: ${data.timestamp}`;
+                    
+                    resultDiv.classList.remove('hidden');
+                    await loadHistory();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error making prediction: ' + error.message);
+            }
+        });
+
+        // Location change handling
+        document.getElementById('locationSelect').addEventListener('change', async (e) => {
+            if (e.target.value !== 'Unknown') {
+                const response = await fetch('/locations');
+                const locations = await response.json();
+                const location = locations.find(l => l.name === e.target.value);
+                
+                if (location) {
+                    const weatherData = await fetch(`/predict?location=${location.name}`).then(r => r.json());
+                    if (weatherData) {
+                        document.getElementById('temperature').value = weatherData.temperature;
+                        document.getElementById('humidity').value = weatherData.humidity;
+                        document.getElementById('wind_speed').value = weatherData.wind_speed;
+                        document.getElementById('pressure').value = weatherData.pressure;
+                    }
+                }
+            }
+        });
+
+        // Initial load
+        loadLocations();
+        loadHistory();
+    </script>
+</body>
+</html> 
