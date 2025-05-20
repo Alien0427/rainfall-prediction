@@ -1,25 +1,30 @@
-# Rainfall Prediction Classifier
+# Rainfall Prediction Web Application
 
-This project implements a machine learning classifier to predict rainfall based on historical weather data. The model is designed to predict whether it will rain tomorrow based on various weather features such as temperature, humidity, and wind speed.
+A machine learning-based web application that predicts rainfall probability based on weather parameters.
 
-## Project Structure
+## Features
 
-```
-rain_prediction/
-├── data/                  # Directory for dataset
-├── data_preparation.py    # Data exploration and preprocessing
-├── model.py              # Classifier pipeline implementation
-├── evaluation.py         # Model evaluation and visualization
-├── main.py              # Main execution script
-└── requirements.txt      # Project dependencies
-```
+- Real-time rainfall prediction
+- Location-based weather data
+- Historical prediction tracking
+- Weather trend visualization
+- Mobile-responsive design
 
-## Setup and Installation
+## Tech Stack
 
-1. Create a virtual environment (recommended):
+- Python 3.11
+- Flask
+- SQLite
+- scikit-learn
+- Tailwind CSS
+- Chart.js
+
+## Setup
+
+1. Clone the repository:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+git clone https://github.com/yourusername/rainfall-prediction.git
+cd rainfall-prediction
 ```
 
 2. Install dependencies:
@@ -27,37 +32,44 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Usage
-
-1. Place your weather dataset in the `data/` directory
-2. Run the main script:
-```bash
-python main.py
+3. Set up environment variables:
+Create a `.env` file with:
+```
+OPENWEATHER_API_KEY=your_api_key_here
+FLASK_ENV=development
 ```
 
-## Project Components
+4. Run the application:
+```bash
+python app.py
+```
 
-### Data Preparation
-- Data loading and exploration
-- Feature engineering
-- Data cleaning and preprocessing
-- Train-test split
+5. Open your browser and go to `http://localhost:5000`
 
-### Model Pipeline
-- Feature selection
-- Model training
-- Hyperparameter optimization
-- Cross-validation
+## Project Structure
 
-### Evaluation
-- Performance metrics calculation
-- Visualization of results
-- Model interpretation
+- `app.py`: Main Flask application
+- `database.py`: SQLite database operations
+- `templates/`: HTML templates
+- `models/`: Trained ML models
+- `static/`: Static assets
 
-## Dependencies
-- numpy
-- pandas
-- scikit-learn
-- matplotlib
-- seaborn
-- xgboost 
+## API Endpoints
+
+- `GET /`: Home page
+- `POST /predict`: Make rainfall prediction
+- `GET /history`: Get prediction history
+- `GET /locations`: Get saved locations
+- `POST /add_location`: Add new location
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+MIT License 
