@@ -27,15 +27,20 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov
     
+    - name: Set up test environment
+      run: |
+        echo "OPENWEATHER_API_KEY=test_key" >> $GITHUB_ENV
+        echo "FLASK_ENV=testing" >> $GITHUB_ENV
+    
     - name: Run tests
       run: |
-        pytest --cov=./ --cov-report=xml
+        pytest --cov=./ --cov-report=xml -v
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
         file: ./coverage.xml
-        fail_ci_if_error: true
+        fail_ci_if_error: false
 
   deploy:
     needs: test

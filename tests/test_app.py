@@ -1,23 +1,29 @@
 import pytest
 from app import app
 import json
+import os
 
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
+    # Set up test environment variables
+    os.environ['OPENWEATHER_API_KEY'] = 'test_key'
+    os.environ['FLASK_ENV'] = 'testing'
     with app.test_client() as client:
         yield client
 
 def test_home_page(client):
     response = client.get('/')
     assert response.status_code == 200
+    assert b'Rainfall Prediction' in response.data
 
 def test_predict_endpoint(client):
     test_data = {
         'temperature': 25.0,
         'humidity': 60.0,
         'wind_speed': 10.0,
-        'pressure': 1013.0
+        'pressure': 1013.0,
+        'wind_direction': 'N'
     }
     response = client.post('/predict',
                           data=json.dumps(test_data),
@@ -27,6 +33,18 @@ def test_predict_endpoint(client):
     assert 'prediction' in data
     assert 'probability' in data
     assert 'timestamp' in data
+
+def test_predict_endpoint_invalid_data(client):
+    test_data = {
+        'temperature': 'invalid',
+        'humidity': 60.0,
+        'wind_speed': 10.0,
+        'pressure': 1013.0
+    }
+    response = client.post('/predict',
+                          data=json.dumps(test_data),
+                          content_type='application/json')
+    assert response.status_code == 400
 
 def test_history_endpoint(client):
     response = client.get('/history')
@@ -51,4 +69,15 @@ def test_add_location_endpoint(client):
                           content_type='application/json')
     assert response.status_code == 200
     data = json.loads(response.data)
-    assert 'success' in data 
+    assert 'success' in data
+
+def test_add_location_endpoint_invalid_data(client):
+    test_location = {
+        'name': 'Test City',
+        'latitude': 'invalid',
+        'longitude': 0.0
+    }
+    response = client.post('/add_location',
+                          data=json.dumps(test_location),
+                          content_type='application/json')
+    assert response.status_code == 400 
