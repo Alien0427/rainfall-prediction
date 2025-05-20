@@ -32,6 +32,9 @@ jobs:
         echo "OPENWEATHER_API_KEY=test_key" >> $GITHUB_ENV
         echo "FLASK_ENV=testing" >> $GITHUB_ENV
     
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+    
     - name: Run tests
       run: |
         pytest --cov=./ --cov-report=xml -v
